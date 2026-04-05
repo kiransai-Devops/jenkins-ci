@@ -35,28 +35,7 @@ pipeline {
                 }
             }
         }
-        //Here you need to select scanner tool and send the analysis to server
-        stage('Sonar Scan'){
-            environment {
-                def scannerHome = tool 'sonar-8.0'
-            }
-            steps {
-                script{
-                    withSonarQubeEnv('sonar-server') {
-                        sh  "${scannerHome}/bin/sonar-scanner"
-                    }
-                }
-            }
-        }
-        stage('Quality Gate') {
-            steps {
-                timeout(time: 1, unit: 'HOURS') {
-                    Wait for the quality gate status
-                    abortPipeline: true will fail the Jenkins job if the quality gate is 'FAILED'
-                    waitForQualityGate abortPipeline: true 
-                }
-            }
-        }
+        //Here build the image and push to aws ecr
         stage('Build Image') {
             steps {
                 script{
@@ -71,26 +50,27 @@ pipeline {
                 }
             }
         }
-    //     stage('Trivy Scan'){
-    //         steps {
-    //             script{
-    //                 sh """
-    //                     trivy image \
-    //                     --scanners vuln \
-    //                     --severity HIGH,CRITICAL,MEDIUM \
-    //                     --pkg-types os \
-    //                     --exit-code 1 \
-    //                     --format table \
-    //                     ${ACC_ID}.dkr.ecr.us-east-1.amazonaws.com/${PROJECT}/${COMPONENT}:${appVersion}
-    //                 """
-    //             }
-    //         }
-    //     }
-    // }
+        
+    }
+    // scan image here 
+    stage('Trivy Scan'){
+            steps {
+                script{
+                    sh """
+                        trivy image \
+                        --scanners vuln \
+                        --severity HIGH,CRITICAL,MEDIUM \
+                        --pkg-types os \
+                        --exit-code 1 \
+                        --format table \
+                        ${ACC_ID}.dkr.ecr.us-east-1.amazonaws.com/${PROJECT}/${COMPONENT}:${appVersion}
+                    """
+                }
+            }
+        }
     // post build
     post{
         always{
-            echo 'I will always say Hello again!'
             cleanWs()
         }
         success {

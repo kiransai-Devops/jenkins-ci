@@ -35,7 +35,7 @@ pipeline {
                 }
             }
         }
-        //Here build the image and push to aws ecr
+        
         stage('Build Image') {
             steps {
                 script{
@@ -50,10 +50,8 @@ pipeline {
                 }
             }
         }
-        
-    }
-    // scan image here 
-    stage('Trivy Scan'){
+
+        stage('Trivy Scan'){
             steps {
                 script{
                     sh """
@@ -68,9 +66,14 @@ pipeline {
                 }
             }
         }
-    // post build
+
+    }
+
+        
+
     post{
         always{
+            echo 'I will always say Hello again!'
             cleanWs()
         }
         success {
